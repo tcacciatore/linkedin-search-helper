@@ -201,9 +201,12 @@
     <button class="secondaire" onclick="enregistrerRecherche()">Enregistrer cette recherche</button>
   </div>
 
-  <div class="resultat" id="resultat">
-    <strong>Recherche générée :</strong>
-    <span id="texteRequete"></span>
+  <div class="resultat visible" id="resultat">
+    <strong>Recherche générée (vous pouvez la copier-coller dans la barre de recherche LinkedIn) :</strong>
+    <span id="texteRequete">Remplissez le formulaire ci-dessus pour voir la recherche apparaître ici.</span>
+    <div style="margin-top: 12px;">
+      <button class="secondaire" onclick="copierRequete()">Copier la requête</button>
+    </div>
   </div>
 
   <div class="saves">
@@ -289,6 +292,27 @@
     });
   }
 
+  function actualiserApercu() {
+    var requete = construireRequete(lireFormulaire());
+    var span = document.getElementById('texteRequete');
+    span.textContent = requete.length > 0
+      ? requete
+      : 'Remplissez le formulaire ci-dessus pour voir la recherche apparaître ici.';
+  }
+
+  function copierRequete() {
+    var requete = construireRequete(lireFormulaire());
+
+    if (requete.length === 0) {
+      alert("Merci de remplir au moins un champ avant de copier la recherche.");
+      return;
+    }
+
+    navigator.clipboard.writeText(requete).then(function () {
+      alert("La recherche a été copiée. Vous pouvez la coller dans la barre de recherche LinkedIn.");
+    });
+  }
+
   function lancerRecherche() {
     var valeurs = lireFormulaire();
     var requete = construireRequete(valeurs);
@@ -304,8 +328,7 @@
       url += '&f_E=' + valeurs.experience.join('%2C');
     }
 
-    document.getElementById('texteRequete').textContent = requete;
-    document.getElementById('resultat').classList.add('visible');
+    actualiserApercu();
 
     window.open(url, '_blank');
   }
@@ -384,6 +407,7 @@
     document.getElementById('entreprises').value = (valeurs.entreprises || []).join(', ');
     document.getElementById('secteurs').value = (valeurs.secteurs || []).join(', ');
     appliquerExperience(valeurs.experience || []);
+    actualiserApercu();
   }
 
   function supprimerRecherche(index) {
@@ -393,7 +417,13 @@
     afficherSauvegardes();
   }
 
+  document.querySelectorAll('input[type="text"], input.experience').forEach(function (champ) {
+    champ.addEventListener('input', actualiserApercu);
+    champ.addEventListener('change', actualiserApercu);
+  });
+
   afficherSauvegardes();
+  actualiserApercu();
 </script>
 </body>
 </html>
