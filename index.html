@@ -181,6 +181,10 @@
   <div class="aide">Le candidat travaille (ou a travaillé) dans l'une de ces entreprises. Séparez-les par des virgules. Exemple : <em>L'Oréal, Danone</em></div>
   <input type="text" id="entreprises" placeholder="Ex : L'Oréal, Danone">
 
+  <label for="secteurs">Secteur d'activité</label>
+  <div class="aide">Le candidat travaille dans l'un de ces secteurs. Séparez-les par des virgules. Exemple : <em>Luxe, Cosmétique</em></div>
+  <input type="text" id="secteurs" placeholder="Ex : Luxe, Cosmétique">
+
   <label>Niveau d'expérience</label>
   <div class="aide">Cochez un ou plusieurs niveaux. Si vous ne cochez rien, tous les niveaux seront inclus.</div>
   <div class="cases">
@@ -247,6 +251,11 @@
       morceaux.push(valeurs.entreprises.length > 1 ? '(' + groupeEntreprises + ')' : groupeEntreprises);
     }
 
+    if (valeurs.secteurs.length > 0) {
+      var groupeSecteurs = valeurs.secteurs.map(formaterMot).join(' OR ');
+      morceaux.push(valeurs.secteurs.length > 1 ? '(' + groupeSecteurs + ')' : groupeSecteurs);
+    }
+
     var requete = morceaux.join(' AND ');
 
     valeurs.exclure.forEach(function (mot) {
@@ -264,6 +273,7 @@
       exclure: nettoyerListe(document.getElementById('exclure').value),
       departements: nettoyerListe(document.getElementById('departements').value),
       entreprises: nettoyerListe(document.getElementById('entreprises').value),
+      secteurs: nettoyerListe(document.getElementById('secteurs').value),
       experience: lireExperience()
     };
   }
@@ -372,6 +382,7 @@
     document.getElementById('exclure').value = valeurs.exclure.join(', ');
     document.getElementById('departements').value = (valeurs.departements || []).join(', ');
     document.getElementById('entreprises').value = (valeurs.entreprises || []).join(', ');
+    document.getElementById('secteurs').value = (valeurs.secteurs || []).join(', ');
     appliquerExperience(valeurs.experience || []);
   }
 
