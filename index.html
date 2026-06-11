@@ -125,6 +125,28 @@
   }
   .danger { background: #fde8e8; color: #b30000; }
   .danger:hover { background: #f8caca; }
+  .cases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .case {
+    font-weight: normal;
+    font-size: 16px;
+    margin-top: 0;
+    background: var(--gris-clair);
+    border: 1px solid var(--gris-bordure);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .case input {
+    width: 18px;
+    height: 18px;
+  }
 </style>
 </head>
 <body>
@@ -150,6 +172,25 @@
   <label for="exclure">Mots à exclure</label>
   <div class="aide">Les profils contenant ces mots ne seront PAS proposés. Séparez-les par des virgules. Exemple : <em>Stage, Alternance</em></div>
   <input type="text" id="exclure" placeholder="Ex : Stage, Alternance">
+
+  <label for="departements">Départements / fonctions recherchés</label>
+  <div class="aide">Le candidat doit appartenir à l'un de ces départements ou fonctions. Séparez-les par des virgules. Exemple : <em>Marketing, Communication</em></div>
+  <input type="text" id="departements" placeholder="Ex : Marketing, Communication">
+
+  <label for="entreprises">Entreprises ciblées</label>
+  <div class="aide">Le candidat travaille (ou a travaillé) dans l'une de ces entreprises. Séparez-les par des virgules. Exemple : <em>L'Oréal, Danone</em></div>
+  <input type="text" id="entreprises" placeholder="Ex : L'Oréal, Danone">
+
+  <label>Niveau d'expérience</label>
+  <div class="aide">Cochez un ou plusieurs niveaux. Si vous ne cochez rien, tous les niveaux seront inclus.</div>
+  <div class="cases">
+    <label class="case"><input type="checkbox" value="1" class="experience"> Stage</label>
+    <label class="case"><input type="checkbox" value="2" class="experience"> Débutant</label>
+    <label class="case"><input type="checkbox" value="3" class="experience"> Confirmé</label>
+    <label class="case"><input type="checkbox" value="4" class="experience"> Senior / Manager</label>
+    <label class="case"><input type="checkbox" value="5" class="experience"> Directeur</label>
+    <label class="case"><input type="checkbox" value="6" class="experience"> Direction générale</label>
+  </div>
 
   <div class="boutons">
     <button class="principal" onclick="lancerRecherche()">Lancer la recherche sur LinkedIn</button>
@@ -196,6 +237,16 @@
       morceaux.push(valeurs.optionnel.length > 1 ? '(' + groupeOpt + ')' : groupeOpt);
     }
 
+    if (valeurs.departements.length > 0) {
+      var groupeDept = valeurs.departements.map(formaterMot).join(' OR ');
+      morceaux.push(valeurs.departements.length > 1 ? '(' + groupeDept + ')' : groupeDept);
+    }
+
+    if (valeurs.entreprises.length > 0) {
+      var groupeEntreprises = valeurs.entreprises.map(formaterMot).join(' OR ');
+      morceaux.push(valeurs.entreprises.length > 1 ? '(' + groupeEntreprises + ')' : groupeEntreprises);
+    }
+
     var requete = morceaux.join(' AND ');
 
     valeurs.exclure.forEach(function (mot) {
@@ -210,8 +261,22 @@
       metier: nettoyerListe(document.getElementById('metier').value),
       obligatoire: nettoyerListe(document.getElementById('obligatoire').value),
       optionnel: nettoyerListe(document.getElementById('optionnel').value),
-      exclure: nettoyerListe(document.getElementById('exclure').value)
+      exclure: nettoyerListe(document.getElementById('exclure').value),
+      departements: nettoyerListe(document.getElementById('departements').value),
+      entreprises: nettoyerListe(document.getElementById('entreprises').value),
+      experience: lireExperience()
     };
+  }
+
+  function lireExperience() {
+    return Array.prototype.slice.call(document.querySelectorAll('.experience:checked'))
+      .map(function (case_) { return case_.value; });
+  }
+
+  function appliquerExperience(niveaux) {
+    document.querySelectorAll('.experience').forEach(function (case_) {
+      case_.checked = niveaux.indexOf(case_.value) !== -1;
+    });
   }
 
   function lancerRecherche() {
@@ -224,6 +289,10 @@
     }
 
     var url = 'https://www.linkedin.com/search/results/people/?keywords=' + encodeURIComponent(requete);
+
+    if (valeurs.experience.length > 0) {
+      url += '&f_E=' + valeurs.experience.join('%2C');
+    }
 
     document.getElementById('texteRequete').textContent = requete;
     document.getElementById('resultat').classList.add('visible');
@@ -301,6 +370,9 @@
     document.getElementById('obligatoire').value = valeurs.obligatoire.join(', ');
     document.getElementById('optionnel').value = valeurs.optionnel.join(', ');
     document.getElementById('exclure').value = valeurs.exclure.join(', ');
+    document.getElementById('departements').value = (valeurs.departements || []).join(', ');
+    document.getElementById('entreprises').value = (valeurs.entreprises || []).join(', ');
+    appliquerExperience(valeurs.experience || []);
   }
 
   function supprimerRecherche(index) {
